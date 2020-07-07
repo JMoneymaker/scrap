@@ -21,7 +21,7 @@ const parseProfile = async() => {
       .map((el) => {
         const td = n => html(el).find('td').eq(n).text().trim();
         return ({
-          date: new Date(td(0)),
+          date: td(0) ? new Date(td(0)) : null,
           agency: td(1),
           action: td(2),
           rank: td(3),
@@ -33,20 +33,23 @@ const parseProfile = async() => {
       .map((el) => {
         const td = n => html(el).find('td').eq(n).text().trim();
         return ({
-          statusDate: new Date(td(0)),
+          statusDate: td(0) ? new Date(td(0)) : null,
           certificate: td(1),
           level: td(2),
           status: td(3),
-          certDate: new Date(td(4)),
-          expDate: new Date(td(5)),
-          probatoionDate: new Date(td(6))
+          certDate: td(4) ? new Date(td(4)) : null,
+          expDate: td(5) ? new Date(td(5)) : null,
+          probatoionDate: td(6) ? new Date(td(6)) : null
         });
       }),
     training: html('#DataGrid1 tr').not(':first-child').get()
       .map((el) => {
         const td = n => html(el).find('td').eq(n).text().trim();
-        //not working...
-        return html(el).has('[bgcolor]') ?
+        return html(el).attr('bgcolor') ?
+          ({
+            year: td(0),
+            total: Number(td(1)) 
+          }) :
           ({
             date: new Date(td(0)),
             crYear: td(1),
@@ -54,10 +57,7 @@ const parseProfile = async() => {
             title: td(3),
             status: td(4),
             score: td(5),
-            hours: td(6)
-          }) : ({
-            year: td(0),
-            total: td(1) 
+            hours: Number(td(6))
           });
       }),
     attributes: html('#DataGridEmpAttr tr').not(':first-child').get()
@@ -66,19 +66,19 @@ const parseProfile = async() => {
         return ({
           topic: td(0),
           attribute: td(1),
-          effectiveDate: new Date(td(2)),
-          expirationDate: new Date(td(3))
+          effectiveDate: td(2) ? new Date(td(2)) : null,
+          expirationDate: td(3) ? new Date(td(3)) : null 
         });
       }),
     education: html('#DataGridEmpEduc tr').not(':first-child').get()
       .map((el) => {
         const td = n => html(el).find('td').eq(n).text().trim();
         return ({
-          date: new Date(td(0)),
+          date: td(0) ? new Date(td(0)) : null,
           degree: td(1),
           school: td(2),
           major: td(3),
-          hours: td(4)
+          hours: Number(td(4))
         });
       })
   });
