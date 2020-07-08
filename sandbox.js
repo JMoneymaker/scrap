@@ -2,11 +2,12 @@ require('dotenv').config();
 const cheerio = require('cheerio');
 const { RawProfileReport } = require('./lib/data/rawProfile');
 
-//TODO
-// fix issue with annual training summary
-
 const parseProfile = async() => {
   const html = await cheerio.load(RawProfileReport.html);
+  const allTraining = html('#DataGrid1 tr').not(':first-child').get();
+  let yearlyTotal = allTraining.filter(el => html(el).attr('bgcolor') === 'Gainsboro');
+  let trainingDetail = allTraining.filter(el => !html(el).attr('bgcolor'));
+
   const summary = tag => html(tag).text().trim();
   return ({
     name: summary('#txtEmpName'),
@@ -42,24 +43,28 @@ const parseProfile = async() => {
           probatoionDate: td(6) ? new Date(td(6)) : null
         });
       }),
-    training: html('#DataGrid1 tr').not(':first-child').get()
+    trainingDetail: trainingDetail
       .map((el) => {
         const td = n => html(el).find('td').eq(n).text().trim();
-        return html(el).attr('bgcolor') ?
-          ({
-            year: td(0),
-            total: Number(td(1)) 
-          }) :
-          ({
-            date: new Date(td(0)),
-            crYear: td(1),
-            course: td(2),
-            title: td(3),
-            status: td(4),
-            score: td(5),
-            hours: Number(td(6))
-          });
+        return ({
+          date: new Date(td(0)),
+          crYear: td(1),
+          course: td(2),
+          title: td(3),
+          status: td(4),
+          score: td(5),
+          hours: Number(td(6))
+        });
       }),
+    yearlyTrainingTotal: yearlyTotal
+      .map(el => {
+        const td = n => html(el).find('td').eq(n).text().trim();
+        return ({
+          year: Number(td(0).split(' ')[0]),
+          totalHours: Number(td(1))
+        });
+      }),
+    allTimeTotal: Number(html('#DataGrid1 tr[bgcolor="DarkGray"]').find('td').eq(1).text().trim()),
     attributes: html('#DataGridEmpAttr tr').not(':first-child').get()
       .map((el) => {
         const td = n => html(el).find('td').eq(n).text().trim();
